@@ -59,4 +59,11 @@ Copyright (c) 2023 hect0x7 — Original JMComic-Crawler-Python project
 
 ## Disclaimer
 
-This software is for educational and personal use only. Please respect the terms of service of any websites you interact with and comply with applicable laws in your jurisdiction.
+This software is a technical tool only. It does not contain, host, or distribute any content. The developer is not responsible for any third-party content accessed through this software.
+
+- This software is for **educational and personal use only**. Commercial or illegal use is strictly prohibited
+- Users must **comply with all applicable laws** in their jurisdiction
+- This software **does not provide, store, or distribute** any comic content
+- The developer **assumes no liability** for third-party content obtained via this software
+- JMComic (禁漫天堂) is a third-party website **not affiliated** with this project
+- By using this software, you confirm you are **at least 18 years of age** and accept full responsibility
