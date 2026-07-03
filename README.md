@@ -1,5 +1,7 @@
 # JMComic Portable 🚀
 
+[English](README.md) | [中文](README_CN.md)
+
 > One-click, offline-ready portable distribution of [JMComic-Crawler-Python](https://github.com/hect0x7/JMComic-Crawler-Python).
 
 Just **unzip and double-click `start.bat`** — no Python installation, no dependency downloads, no configuration needed. Everything is bundled.
