@@ -1,62 +1,62 @@
 # JMComic Portable 🚀
 
-[English](README.md) | [中文](README_CN.md)
+[中文](README.md) | [English](README_EN.md)
 
-> One-click, offline-ready portable distribution of [JMComic-Crawler-Python](https://github.com/hect0x7/JMComic-Crawler-Python).
+> [JMComic-Crawler-Python](https://github.com/hect0x7/JMComic-Crawler-Python) 的一键启动、免安装 Windows 便携版。
 
-Just **unzip and double-click `start.bat`** — no Python installation, no dependency downloads, no configuration needed. Everything is bundled.
+解压即用，双击 `start.bat` 启动——无需安装 Python，无需下载依赖，无需任何配置。所有运行环境已打包在内。
 
-## Credits
+## 致谢
 
-This project is based on **[JMComic-Crawler-Python](https://github.com/hect0x7/JMComic-Crawler-Python)** by [@hect0x7](https://github.com/hect0x7), licensed under the MIT License.
+本项目基于 [**JMComic-Crawler-Python**](https://github.com/hect0x7/JMComic-Crawler-Python) 制作，原作者 [@hect0x7](https://github.com/hect0x7)，采用 MIT 开源协议。
 
-All credit for the core JMComic API library goes to the original author. This portable distribution only adds a self-contained Windows launcher with an embedded Python runtime and pre-downloaded dependencies.
+核心 JMComic API 库的全部功劳归于原作者。本便携版仅在其基础上添加了自包含的 Windows 启动器，内置 Python 运行时和预下载的依赖包。
 
-## Features
+## 特性
 
-- 🔌 **Fully offline setup** — Embedded Python 3.12 + all dependencies bundled (~27 MB)
-- 🖱️ **One-click launch** — Double-click `start.bat`, browser opens automatically
-- 🌐 **Web UI** — Search, browse rankings, manage favorites, and download comics
-- 📦 **No installation** — Just extract the zip and run
+- 🔌 **完全离线部署** — 内置 Python 3.12 运行时 + 全部依赖（约 27 MB）
+- 🖱️ **一键启动** — 双击 `start.bat`，自动打开浏览器
+- 🌐 **Web 界面** — 搜索、浏览排行榜、管理收藏、下载漫画
+- 📦 **无需安装** — 解压即用，U 盘随身携带
 
-## Quick Start
+## 快速开始
 
-1. Download `JMComic-Portable-Windows.zip` from [Releases](../../releases)
-2. Extract anywhere (Desktop, USB drive, etc.)
-3. Double-click `start.bat`
-4. First run takes ~10-30 seconds to set up (fully offline)
-5. Browser opens to `http://127.0.0.1:5000`
+1. 从 [Releases](../../releases) 下载 `JMComic-Portable-Windows.zip`
+2. 解压到任意位置（桌面、U 盘等）
+3. 双击 `start.bat`
+4. 首次启动约 10-30 秒完成初始化（完全离线，无需联网）
+5. 浏览器自动打开 `http://127.0.0.1:5000`
 
-## Usage Tips
+## 使用技巧
 
-- **Proxy**: If JMComic is blocked in your region, go to Settings in the Web UI and configure a proxy
-- **Downloads**: Saved to the `downloads/` folder next to `start.bat`
-- **Stop**: Press `Ctrl+C` in the console window, or just close it
-- **Reset**: Delete `python/`, `downloads/`, and `web/user_settings.json`, then re-run `start.bat`
+- **代理设置**：如果禁漫在你所在的地区被屏蔽，在 Web 界面的「设置」中配置代理
+- **下载位置**：漫画保存在 `start.bat` 旁边的 `downloads` 文件夹中
+- **停止服务**：在控制台窗口按 `Ctrl+C`，或直接关闭窗口
+- **重置环境**：删除 `python`、`downloads` 文件夹和 `web/user_settings.json`，重新运行 `start.bat`
 
-## Structure
+## 目录结构
 
 ```
 JMComic-Portable/
-├── start.bat              ← Double-click to launch
-├── python-embed.zip       ← Python 3.12 runtime (auto-extracted on first run)
-├── packages/              ← Pre-downloaded wheels (offline install)
-├── src/jmcomic/           ← JMComic API library (from original project)
-├── web/                   ← Flask Web UI
+├── start.bat              ← 双击启动
+├── python-embed.zip       ← Python 3.12 运行时（首次运行自动解压）
+├── packages/              ← 预下载的依赖包（离线安装）
+├── src/jmcomic/           ← JMComic API 库（来自原项目）
+├── web/                   ← Flask Web 界面
 │   ├── app.py
 │   ├── config.py
 │   ├── routes/
 │   ├── static/
 │   └── templates/
-└── downloads/             ← Created at runtime (your downloaded comics)
+└── downloads/             ← 运行时自动创建（存放下载的漫画）
 ```
 
-## License
+## 开源协议
 
-This project uses the same [MIT License](LICENSE) as the original [JMComic-Crawler-Python](https://github.com/hect0x7/JMComic-Crawler-Python).
+本项目与原项目 [JMComic-Crawler-Python](https://github.com/hect0x7/JMComic-Crawler-Python) 使用相同的 [MIT License](LICENSE)。
 
-Copyright (c) 2023 hect0x7 — Original JMComic-Crawler-Python project
+Copyright (c) 2023 hect0x7 — 原 JMComic-Crawler-Python 项目
 
-## Disclaimer
+## 免责声明
 
-This software is for educational and personal use only. Please respect the terms of service of any websites you interact with and comply with applicable laws in your jurisdiction.
+本软件仅供学习交流和个人使用。请遵守所访问网站的服务条款以及当地法律法规。
