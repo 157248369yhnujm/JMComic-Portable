@@ -2,68 +2,58 @@
 
 [中文](README.md) | [English](README_EN.md)
 
-> [JMComic-Crawler-Python](https://github.com/hect0x7/JMComic-Crawler-Python) 的一键启动、免安装 Windows 便携版。
+> [JMComic-Crawler-Python](https://github.com/hect0x7/JMComic-Crawler-Python) 的 Windows 免安装便携版——解压即用，双击启动。
 
-解压即用，双击 `start.bat` 启动——无需安装 Python，无需下载依赖，无需任何配置。所有运行环境已打包在内。
+内置 Python 运行时 + 全部依赖，首次启动完全离线，无需联网下载任何东西。U 盘带走，插上就能用。
 
 ## 致谢
 
-本项目基于 [**JMComic-Crawler-Python**](https://github.com/hect0x7/JMComic-Crawler-Python) 制作，原作者 [@hect0x7](https://github.com/hect0x7)，采用 MIT 开源协议。
+本项目基于 [**JMComic-Crawler-Python**](https://github.com/hect0x7/JMComic-Crawler-Python)（作者 [@hect0x7](https://github.com/hect0x7)）制作，沿用原项目 MIT 协议。
 
-核心 JMComic API 库的全部功劳归于原作者。本便携版仅在其基础上添加了自包含的 Windows 启动器，内置 Python 运行时和预下载的依赖包。
+核心 API 库的全部功劳归于原作者。本便携版仅在其基础上打包了 Windows 运行环境，方便不懂命令行的用户开箱即用。
 
-## 特性
+## 功能
 
-- 🔌 **完全离线部署** — 内置 Python 3.12 运行时 + 全部依赖（约 27 MB）
-- 🖱️ **一键启动** — 双击 `start.bat`，自动打开浏览器
-- 🌐 **Web 界面** — 搜索、浏览排行榜、管理收藏、下载漫画
-- 📦 **无需安装** — 解压即用，U 盘随身携带
+| 模块 | 说明 |
+|------|------|
+| 🔍 搜索 | 关键字搜索，支持高级语法（AND/OR/NOT） |
+| 📊 排行榜 | 日榜、周榜、月榜、总榜、最新、最多爱心 |
+| ❤️ 收藏夹 | 登录禁漫账号，浏览和添加收藏 |
+| 📥 下载器 | 多线程下载，队列管理，支持导出为 ZIP |
+| 📂 本地库 | **下载过的漫画本地保存，再次阅读不耗流量，无需重新拉取** |
+| 📖 阅读器 | Okuma 阅读器，双页/单页模式，自适应屏幕 |
+| ⚙️ 设置 | 代理配置、线程数、下载目录等 |
 
 ## 快速开始
 
 1. 从 [Releases](../../releases) 下载 `JMComic-Portable-Windows.zip`
-2. 解压到任意位置（桌面、U 盘等）
+2. 解压到任意位置
 3. 双击 `start.bat`
-4. 首次启动约 10-30 秒完成初始化（完全离线，无需联网）
-5. 浏览器自动打开 `http://127.0.0.1:5000`
-
-## 使用技巧
-
-- **代理设置**：如果禁漫在你所在的地区被屏蔽，在 Web 界面的「设置」中配置代理
-- **下载位置**：漫画保存在 `start.bat` 旁边的 `downloads` 文件夹中
-- **停止服务**：在控制台窗口按 `Ctrl+C`，或直接关闭窗口
-- **重置环境**：删除 `python`、`downloads` 文件夹和 `web/user_settings.json`，重新运行 `start.bat`
+4. 首次启动约 10-30 秒（完全离线），之后秒开
 
 ## 目录结构
 
 ```
 JMComic-Portable/
 ├── start.bat              ← 双击启动
-├── python-embed.zip       ← Python 3.12 运行时（首次运行自动解压）
-├── packages/              ← 预下载的依赖包（离线安装）
-├── src/jmcomic/           ← JMComic API 库（来自原项目）
-├── web/                   ← Flask Web 界面
-│   ├── app.py
-│   ├── config.py
-│   ├── routes/
-│   ├── static/
-│   └── templates/
-└── downloads/             ← 运行时自动创建（存放下载的漫画）
+├── python-embed.zip       ← Python 3.12 运行时（首次自动解压）
+├── packages/              ← 预下载依赖（离线安装）
+├── src/jmcomic/           ← JMComic API 库
+├── web/                   ← Web 界面
+└── downloads/             ← 运行时创建（下载的漫画存这里）
 ```
-
-## 开源协议
-
-本项目与原项目 [JMComic-Crawler-Python](https://github.com/hect0x7/JMComic-Crawler-Python) 使用相同的 [MIT License](LICENSE)。
-
-Copyright (c) 2023 hect0x7 — 原 JMComic-Crawler-Python 项目
 
 ## 免责声明
 
-本软件仅提供技术工具，不包含任何内容。用户使用本软件访问的任何网站、下载的任何内容均与开发者无关。
+- 本软件为**技术工具**，不包含、不提供、不存储任何漫画内容
+- **仅供学习交流**，严禁用于商业或违法用途
+- 使用者须自行遵守所在地法律，**自行承担全部责任**
+- 禁漫天堂是第三方网站，与本项目**无任何关联**
+- 使用前请确认你**已年满 18 周岁**
+- 所有数据仅存储在本地，**不会上传到任何服务器**
 
-- 本软件为**学习交流用途**，请勿用于商业或非法目的
-- 使用者应**自行遵守**所在地区的法律法规
-- 本软件**不提供、不存储、不传播**任何漫画内容
-- 开发者**不负责**用户使用本软件获取的任何第三方内容
-- 禁漫天堂（JMComic）是第三方网站，与本项目**无任何关联**
-- 使用本软件即表示你已**年满 18 周岁**且同意承担全部责任
+## 开源协议
+
+与原项目 [JMComic-Crawler-Python](https://github.com/hect0x7/JMComic-Crawler-Python) 相同，使用 [MIT License](LICENSE)。
+
+Copyright (c) 2023 hect0x7
