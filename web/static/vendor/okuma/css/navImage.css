@@ -1,0 +1,104 @@
+#navImage {
+  display: grid;
+  grid-auto-flow: column;
+  background-size: contain;
+  pointer-events: none;
+}
+
+body.manga #navImage {
+  background-image: url("../img/side.webp");
+}
+
+body.book #navImage {
+  background-image: url("../img/side-book.webp");
+  background-size: 11vmin 100%;
+}
+
+#navImage > #continuousScrollingPages {
+  display: grid;
+}
+
+#navImage > #continuousScrollingPages > img {
+  width: 100%;
+}
+
+#navImage > #filters > div {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+#navImage > #filters > #paperTexture.enabled {
+  background-image: url("../img/paper.webp");
+  mix-blend-mode: exclusion;
+  background-size: 20vmin 20vmin;
+}
+
+body.book #navImage > #filters > #paperTexture.enabled {
+  background-image: url("../img/paper-book.webp");
+  opacity: 0.8;
+}
+
+#navImage.bookShadow {
+  box-shadow: 0 0 0.5em rgba(0,0,0,0.3), 0 1em 1em rgba(0,0,0,0.4), 0 2em 2em rgba(0,0,0,0.6), 0 6em 6em rgba(0,0,0,0.5);
+}
+
+#navImage.doublePage.bookShadow {
+    box-shadow: 0 0 0.5em rgba(0,0,0,0.3), 0 1em 1em rgba(0,0,0,0.4), 0 2em 2em rgba(0,0,0,0.6), 0 12em 12em rgba(0,0,0,0.8);
+}
+
+body.lightTheme #navImage.bookShadow {
+  box-shadow: 0 0.25em 0.5em rgb(0 0 0 / 60%), 0 1em 1em rgb(0 0 0 / 25%), 0 2em 2em rgb(0 0 0 / 27%), 0 12em 12em rgb(0 0 0 / 57%);
+}
+
+body.lightTheme #navImage.doublePage.bookShadow {
+  box-shadow: 0 0.25em 0.5em rgb(0 0 0 / 70%), 0 1em 1em rgb(0 0 0 / 30%), 0 2em 2em rgb(0 0 0 / 27%), 0 12em 12em rgb(0 0 0 / 57%)
+}
+
+#navImage.doublePage > #filters > #bookFold.enabled {
+  background-image: url("../img/bookFold.webp");
+  background-size: 100% 100%;
+  mix-blend-mode: multiply;
+}
+
+body.lightTheme #navImage.doublePage > #filters > #bookFold.enabled {
+  opacity: 0.5;
+}
+
+#navImage > #filters > #lighting.enabled {
+  background-image: url("../img/lightingSinglePage.webp");
+  background-size: 100% 100%;
+  mix-blend-mode: multiply;
+}
+
+#navImage.doublePage > #filters > #lighting.enabled {
+  background-image: url("../img/lightingDoublePage.webp");
+}
+
+body.lightTheme #navImage > #filters > #lighting {
+  display: none !important;
+}
+
+#navImage > #filters > #specular.enabled {
+  background-image: url("../img/specularSinglePage.webp");
+  background-size: 100% 100%;
+  background-blend-mode: multiply;
+  mix-blend-mode: soft-light;
+}
+
+body.book #navImage > #filters > #specular.enabled {
+  opacity: 0.5;
+}
+
+#navImage.doublePage > #filters > #specular.enabled {
+  background-image: url("../img/specularDoublePage.webp");
+}
+
+#navImage {
+  height: 100%;
+  width: min-content;
+  position: relative;
+}

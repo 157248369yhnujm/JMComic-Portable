@@ -1,0 +1,34 @@
+# User data and runtime
+/downloads/
+/web/user_settings.json
+/web/cover_cache/*
+/web/cover_cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# Extracted Python runtime (generated at first run)
+/python/
+
+# venv
+/venv/
+/web/venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+/build/
+/dist/
+*.egg-info/
+
+# Distribution ZIP files (not python-embed.zip)
+/JMComic-Portable-*.zip
+/JMComic-Portable-Windows.zip

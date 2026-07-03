@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>JM Reader</title>
+<style>
+:root{--bg:#0d0d0d;--text:#ccc;--accent:#448aff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);overflow:hidden;font-family:system-ui,-apple-system,sans-serif;user-select:none;-webkit-user-select:none;height:100dvh;width:100vw}
+
+#toolbar{position:fixed;top:0;left:0;right:0;z-index:100;padding:8px 12px;background:linear-gradient(to bottom,rgba(0,0,0,0.88),transparent);display:flex;align-items:center;gap:6px;flex-wrap:wrap;transition:opacity .25s,transform .25s}
+#toolbar.hidden{opacity:0;transform:translateY(-100%);pointer-events:none}
+/* 容器隐藏后翻页不被挡，但顶部按钮（含随机🎲）始终可点 */
+#toolbar.hidden button{pointer-events:auto}
+#toolbar .sep{width:1px;height:18px;background:rgba(255,255,255,.15);margin:0 4px}
+#toolbar .ttl{color:#ddd;font-size:.88rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#toolbar .pg{color:#999;font-size:.78rem;white-space:nowrap}
+#toolbar button,.bbtn{color:#ccc;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:5px 8px;font-size:.78rem;cursor:pointer;white-space:nowrap;min-width:26px}
+#toolbar button:hover,.bbtn:hover{background:rgba(255,255,255,.18)}
+.accent{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+.active{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+
+#bottombar{position:fixed;bottom:0;left:0;right:0;z-index:100;padding:8px 12px;background:linear-gradient(to top,rgba(0,0,0,0.88),transparent);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;transition:opacity .25s,transform .25s}
+#bottombar.hidden{opacity:0;transform:translateY(100%);pointer-events:none}
+/* 底栏隐藏后其内按钮仍可点，与顶栏对称 */
+#bottombar.hidden .bbtn,#bottombar.hidden select{pointer-events:auto}
+#bottombar .grp{display:flex;align-items:center;gap:4px}
+#bottombar select{background:rgba(255,255,255,.1);color:#ddd;border:1px solid rgba(255,255,255,.2);border-radius:5px;padding:4px 20px 4px 6px;font-size:.8rem}
+
+#vp{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#vp.scroll{overflow:auto;display:block}
+
+#pg-wrap{display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#pg-img{display:block}
+
+#scroll-view{display:flex;flex-shrink:0}
+#scroll-view.col{flex-direction:column;width:100%}
+#scroll-view.row{flex-direction:row;min-height:100%;align-items:stretch}
+.spage{flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:visible}
+.col .spage{width:100%}
+.row .spage{min-height:100vh}
+.spage img{display:block;flex-shrink:0}
+
+.spin{width:40px;height:40px;border:3px solid rgba(255,255,255,.1);border-top-color:rgba(255,255,255,.4);border-radius:50%;animation:spin .7s linear infinite;margin:auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 章节快切按钮（左下/右下角） */
+.chap-nav-btn{position:fixed;bottom:50%;z-index:101;transform:translateY(50%);background:rgba(0,0,0,.7);color:#ccc;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:12px 10px;font-size:.82rem;cursor:pointer;white-space:nowrap;transition:opacity .25s,transform .25s;writing-mode:vertical-rl;letter-spacing:2px}
+.chap-nav-btn:hover{background:rgba(0,0,0,.88);color:#fff;border-color:var(--accent)}
+.chap-nav-btn.hidden{opacity:0;pointer-events:none}
+#btn-prev-chap{left:6px}
+#btn-next-chap{right:6px}
+#btn-prev-chap.hidden{transform:translateY(50%) translateX(-20px)}
+#btn-next-chap.hidden{transform:translateY(50%) translateX(20px)}
+
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:200;background:rgba(0,0,0,.85);color:#fff;padding:8px 18px;border-radius:8px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none}
+#toast.on{opacity:1}
+
+.chap-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:300;display:flex;align-items:center;justify-content:center}
+.chap-box{background:#1a1a2e;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:20px;max-width:480px;width:90%;max-height:70vh;overflow-y:auto}
+.chap-box h3{color:#ddd;margin:0 0 12px}
+.chap-item{padding:10px 12px;border-radius:6px;cursor:pointer;color:#ccc;transition:background .15s}
+.chap-item:hover{background:rgba(255,255,255,.06)}
+.chap-item.cur{color:var(--accent);font-weight:bold}
+.chap-close{display:block;width:100%;margin-top:12px;color:#ccc;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:8px;cursor:pointer;font-size:.85rem}
+</style>
+</head>
+<body>
+
+<div id="toolbar" class="hidden">
+  <button id="btn-back">←</button>
+  <span class="ttl" id="ttl">加载中...</span>
+  <span class="sep"></span>
+  <span class="pg" id="pg-label"></span>
+  <span class="sep"></span>
+  <button id="btn-chap">📑</button>
+  <button id="btn-random" title="随机下一本">🎲</button>
+  <button id="btn-dl" class="accent">📥</button>
+</div>
+
+<!-- 章节快切按钮（左下/右下角固定） -->
+<button class="chap-nav-btn" id="btn-prev-chap">◀ 上一章</button>
+<button class="chap-nav-btn" id="btn-next-chap">下一章 ▶</button>
+
+<div id="vp"><div class="spin"></div></div>
+
+<div id="bottombar" class="hidden">
+  <div class="grp">
+    <button class="bbtn" id="btn-prev">◀</button>
+    <select id="pg-sel"></select>
+    <button class="bbtn" id="btn-next">▶</button>
+  </div>
+  <div class="grp">
+    <button class="bbtn" data-fit="contain">🔲</button>
+    <button class="bbtn" data-fit="width">↔</button>
+    <button class="bbtn" data-fit="height">↕</button>
+    <button class="bbtn" data-fit="full">🔍</button>
+  </div>
+  <div class="grp">
+    <button class="bbtn" id="btn-rcw">↻</button>
+    <button class="bbtn" id="btn-rcc">↺</button>
+    <button class="bbtn" id="btn-r0">⟲</button>
+  </div>
+  <div class="grp">
+    <button class="bbtn" id="btn-pmode">📄</button>
+    <button class="bbtn" id="btn-smode">📜</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ============ 状态 ============
+const SK = 'jmreader2_';
+let albumId, photoId, eps=[], epIdx=-1, totalPg=0, curPg=0;
+let fit='contain', rot=0, vmode='page';
+let menuVis=false, menuTmr=null;
+let isLocal=false;           // 本地漫画模式
+let localDir='';             // 本地目录名（URL编码）
+let localImages=[];          // 本地图片文件名列表
+let localChapters=[];        // 本地所有章节前缀
+let readerSource='';         // 来源：空=排行榜 / 'favorites'=收藏夹
+let favFolderId='0';         // 收藏夹来源时的文件夹ID（'0'=全部收藏）
+
+// ============ 初始化 ============
+(async function(){
+  const p=new URLSearchParams(location.search);
+  albumId=p.get('title')||'';
+  photoId=p.get('volume')||'';
+  localDir=p.get('dir')||'';
+  readerSource=p.get('source')||'';
+  favFolderId=p.get('folder_id')||'0';
+
+  // ---- 本地漫画模式（dir 参数） ----
+  if(localDir){
+    isLocal=true;
+    const isZip=localDir.startsWith('zip:');           // ZIP 模式: dir=zip:ALBUM_ID
+    const zipAlbumId=isZip ? localDir.slice(4) : '';
+
+    albumId='local_'+localDir;
+    photoId=p.get('chapter')||'001';
+    localChapters=(p.get('chapters')||photoId).split(',');
+
+    if(isZip){
+      document.getElementById('ttl').textContent='JM'+zipAlbumId;
+    }else{
+      document.getElementById('ttl').textContent=decodeURIComponent(localDir);
+    }
+
+    // 获取图片列表
+    try{
+      let r, d;
+      if(isZip){
+        // ZIP 模式：从 zip-images API 获取指定章节的文件列表
+        r=await fetch('/api/local/zip-images?album_id='+zipAlbumId);
+        d=await r.json();
+        if(d.success&&d.data&&d.data.chapters&&d.data.chapters[photoId]){
+          localImages=d.data.chapters[photoId].files||[];
+          totalPg=localImages.length;
+          document.getElementById('ttl').textContent=d.data.album_title||('JM'+zipAlbumId);
+        }
+      }else{
+        // 目录模式
+        r=await fetch('/api/local/dir-images?name='+encodeURIComponent(localDir)+'&chapter='+photoId);
+        d=await r.json();
+        if(d.success){localImages=d.data.images||[]; totalPg=localImages.length;}
+      }
+    }catch(e){}
+
+    eps=localChapters.map(c=>({photo_id:c, index:c, title:'第'+parseInt(c)+'章'}));
+    epIdx=eps.findIndex(e=>e.photo_id==photoId);
+
+    document.getElementById('btn-dl').style.display='none';
+    if(localChapters.length<=1){document.getElementById('btn-chap').style.display='none';document.getElementById('btn-prev-chap').style.display='none';document.getElementById('btn-next-chap').style.display='none';}
+
+    document.getElementById('btn-back').addEventListener('click',e=>{
+      e.stopPropagation();
+      try{window.opener?window.close():history.back();}catch(ex){location='/#local';}
+    });
+
+  }else{
+    // ---- 在线漫画模式 ----
+    if(!albumId||!photoId){document.body.innerHTML='<div style="color:#fff;padding:40px;text-align:center"><h2>缺少参数</h2><p>?title=ID&volume=ID</p></div>';return;}
+
+    // 专辑信息
+    try{
+      const r=await fetch('/api/album/'+albumId); const d=await r.json();
+      if(d.success&&d.data){
+        document.getElementById('ttl').textContent=d.data.name||('JM'+albumId);
+        eps=d.data.episode_list||[];
+        epIdx=eps.findIndex(e=>e.photo_id==photoId);
+      }
+    }catch(e){}
+    if(eps.length<=1){document.getElementById('btn-prev-chap').style.display='none';document.getElementById('btn-next-chap').style.display='none';}
+
+    // 页数
+    try{
+      const r=await fetch('/api/okuma/'+albumId+'/'+photoId+'/config.json');
+      const d=await r.json(); totalPg=d.numPages||0;
+      if(totalPg===0){document.getElementById('vp').innerHTML='<div style="color:#999;text-align:center">无页面</div>';return;}
+    }catch(e){document.getElementById('vp').innerHTML='<div style="color:#f44;text-align:center;padding:40px">加载失败: '+e.message+'</div>';return;}
+
+    // 返回按钮：回到专辑详情页
+    document.getElementById('btn-back').addEventListener('click',e=>{
+      e.stopPropagation();
+      location='/#album/'+albumId;
+    });
+  }
+
+  if(totalPg===0){document.getElementById('vp').innerHTML='<div style="color:#999;text-align:center;padding:40px">无页面</div>';return;}
+  initUI(); loadState();
+})();
+
+// ============ localStorage ============
+function saveState(){
+  try{localStorage.setItem(SK+albumId,JSON.stringify({photoId,curPg,fit,rot,vmode}));}catch(e){}
+}
+function loadState(){
+  try{
+    const s=JSON.parse(localStorage.getItem(SK+albumId));
+    if(s){if(s.photoId)photoId=s.photoId; if(s.fit)fit=s.fit; if(s.rot!==undefined)rot=s.rot; if(s.vmode)vmode=s.vmode;
+      epIdx=eps.findIndex(e=>e.photo_id==photoId); curPg=s.curPg||0;}
+  }catch(e){}
+  if(vmode==='scroll')renderScroll();else renderPage();
+}
+
+// ============ UI ============
+function initUI(){
+  const sel=document.getElementById('pg-sel');
+  for(let i=0;i<totalPg;i++)sel.appendChild(new Option((i+1)+'/'+totalPg,i));
+  sel.value=curPg;
+  sel.addEventListener('change',()=>{curPg=parseInt(sel.value);renderPage();saveState();});
+  updateHL(); bindEv();
+}
+
+function updateHL(){
+  document.querySelectorAll('#bottombar [data-fit]').forEach(b=>b.classList.toggle('active',b.dataset.fit===fit));
+  document.getElementById('btn-pmode').classList.toggle('active',vmode==='page');
+  document.getElementById('btn-smode').classList.toggle('active',vmode==='scroll');
+}
+function upPgLabel(){document.getElementById('pg-label').textContent=(curPg+1)+' / '+totalPg;document.getElementById('pg-sel').value=curPg;}
+
+// ============ 菜单 ============
+function showMenu(){
+  menuVis=true; document.getElementById('toolbar').classList.remove('hidden');
+  document.getElementById('bottombar').classList.remove('hidden');
+  document.getElementById('btn-prev-chap').classList.remove('hidden');
+  document.getElementById('btn-next-chap').classList.remove('hidden');
+  clearTimeout(menuTmr); menuTmr=setTimeout(hideMenu,4000);
+}
+function hideMenu(){menuVis=false;document.getElementById('toolbar').classList.add('hidden');document.getElementById('bottombar').classList.add('hidden');document.getElementById('btn-prev-chap').classList.add('hidden');document.getElementById('btn-next-chap').classList.add('hidden');}
+function togMenu(){menuVis?hideMenu():showMenu();}
+
+// ============ 图片 URL ============
+function getImgUrl(pageIdx){
+  if(isLocal){
+    if(localDir.startsWith('zip:')){
+      // ZIP 模式
+      return '/api/local/zip-image?album_id='+localDir.slice(4)+'&file='+encodeURIComponent(localImages[pageIdx]);
+    }else{
+      // 目录模式
+      return '/api/local/dir-image?name='+encodeURIComponent(localDir)+'&file='+encodeURIComponent(localImages[pageIdx]);
+    }
+  }else{
+    return albumId
+      ? '/api/local/image/'+albumId+'/'+photoId+'/'+pageIdx
+      : '/api/view-image/'+photoId+'/'+pageIdx;
+  }
+}
+
+// ============ 事件 ============
+function bindEv(){
+  const vp=document.getElementById('vp');
+  vp.addEventListener('click',e=>{
+    if(vmode==='scroll'){togMenu();return;}
+    if(e.target.closest('#toolbar')||e.target.closest('#bottombar'))return;
+    const rx=e.clientX/window.innerWidth;
+    if(rx<0.3)prevPg();else if(rx>0.7)nextPg();else togMenu();
+  });
+  vp.addEventListener('mousemove',e=>{const rx=e.clientX/window.innerWidth,ry=e.clientY/window.innerHeight;
+    if(ry<0.06||ry>0.85)showMenu();
+    // 章节按钮：鼠标移到左右边缘时独立浮现
+    document.getElementById('btn-prev-chap').classList.toggle('hidden', !menuVis&&rx>=0.08);
+    document.getElementById('btn-next-chap').classList.toggle('hidden', !menuVis&&rx<=0.92);
+  });
+  window.addEventListener('mouseup',e=>{
+    if(e.button===3||e.button===4){e.preventDefault();e.stopPropagation();e.button===3?prevPg():nextPg();}
+  },true);
+  vp.addEventListener('wheel',e=>{
+    if(vmode==='scroll'){
+      // 横向滚动（90/270）：滚轮向下 → 向右滚看下一张，90/270 方向一致
+      if(rot===90||rot===270){
+        e.preventDefault();
+        vp.scrollLeft+=e.deltaY;
+      }
+      return;
+    }
+    e.preventDefault();
+    e.deltaY>20?nextPg():e.deltaY<-20?prevPg():0;
+  },{passive:false});
+  document.addEventListener('keydown',e=>{
+    if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
+    switch(e.key){
+      case'ArrowLeft':case'a':case'A':e.preventDefault();prevPg();break;
+      case'ArrowRight':case'd':case'D':e.preventDefault();nextPg();break;
+      case'f':case'F':{const m=['contain','width','height','full'];fit=m[(m.indexOf(fit)+1)%m.length];refreshV();saveState();break;}
+      case'r':rot=(rot+90)%360;refreshV();saveState();break;
+      case'm':case'M':vmode=vmode==='page'?'scroll':'page';updateHL();if(vmode==='scroll')renderScroll();else renderPage();saveState();break;
+      case'Escape':if(isLocal)location='/#local';else location='/#album/'+albumId;break;
+    }
+  });
+  // 按钮
+  document.getElementById('btn-prev').addEventListener('click',e=>{e.stopPropagation();prevPg();});
+  document.getElementById('btn-next').addEventListener('click',e=>{e.stopPropagation();nextPg();});
+  document.getElementById('btn-dl').addEventListener('click',e=>{e.stopPropagation();
+    if(isLocal)return;
+    fetch('/api/download/photo/'+photoId,{method:'POST'}).then(r=>r.json()).then(d=>{
+      toast(d.success?'下载任务已启动':'下载失败: '+(d.error||''));
+    }).catch(()=>toast('下载请求失败'));
+  });
+  document.getElementById('btn-chap').addEventListener('click',e=>{e.stopPropagation();showChaps();});
+  document.getElementById('btn-prev-chap').addEventListener('click',e=>{e.stopPropagation();prevChap();});
+  document.getElementById('btn-next-chap').addEventListener('click',e=>{e.stopPropagation();nextChap();});
+  document.getElementById('btn-random').addEventListener('click',e=>{e.stopPropagation();randomNext();});
+  document.getElementById('btn-rcw').addEventListener('click',e=>{e.stopPropagation();rot=(rot+90)%360;refreshV();saveState();});
+  document.getElementById('btn-rcc').addEventListener('click',e=>{e.stopPropagation();rot=(rot-90+360)%360;refreshV();saveState();});
+  document.getElementById('btn-r0').addEventListener('click',e=>{e.stopPropagation();rot=0;refreshV();saveState();});
+  document.getElementById('btn-pmode').addEventListener('click',e=>{e.stopPropagation();vmode='page';updateHL();renderPage();saveState();});
+  document.getElementById('btn-smode').addEventListener('click',e=>{e.stopPropagation();vmode='scroll';updateHL();renderScroll();saveState();});
+  document.querySelectorAll('#bottombar [data-fit]').forEach(b=>{b.addEventListener('click',e=>{e.stopPropagation();fit=b.dataset.fit;refreshV();saveState();updateHL();});});
+}
+
+// ============ 翻页 ============
+function prevPg(){if(vmode==='scroll')return;if(curPg>0){curPg--;renderPage();saveState();}else if(epIdx>0){switchChap(epIdx-1,-1);}}
+function nextPg(){if(vmode==='scroll')return;if(curPg<totalPg-1){curPg++;renderPage();saveState();}else if(epIdx>=0&&epIdx<eps.length-1){switchChap(epIdx+1,0);}}
+
+// ============ 单页模式 ============
+function renderPage(){
+  vmode='page'; updateHL(); upPgLabel(); saveState();
+  const vp=document.getElementById('vp');
+  vp.className=''; vp.innerHTML='';
+  const wrap=document.createElement('div'); wrap.id='pg-wrap';
+  const img=document.createElement('img'); img.id='pg-img';
+  img.src=getImgUrl(curPg);
+  img.onload=()=>{applySize(img,wrap,vp);};
+  img.onerror=()=>{vp.innerHTML='<div style="color:#999;text-align:center;padding:40px"><p>加载失败</p><button onclick="renderPage()" class="bbtn" style="margin-top:8px">重试</button></div>';};
+  wrap.appendChild(img); vp.appendChild(wrap);
+  if(curPg+1<totalPg)new Image().src=getImgUrl(curPg+1);
+}
+
+function applySize(img,wrap,vp){
+  const vpW=vp.clientWidth, vpH=vp.clientHeight;
+  const nW=img.naturalWidth, nH=img.naturalHeight;
+  const is90=rot===90||rot===270;
+  const eW=is90?nH:nW, eH=is90?nW:nH;
+
+  wrap.style.width='100%'; wrap.style.height='100%';
+  wrap.style.overflow=fit==='contain'?'hidden':'auto';
+  img.style.transformOrigin='center center';
+
+  if(fit==='contain'){
+    const scaleW=vpW/eW, scaleH=vpH/eH, scale=Math.min(scaleW,scaleH);
+    const dw=eW*scale, dh=eH*scale;
+    if(is90){img.style.width=dh+'px';img.style.height=dw+'px';}
+    else{img.style.width=dw+'px';img.style.height=dh+'px';}
+  }else if(fit==='width'){
+    if(is90){img.style.height=vpW+'px';img.style.width='auto';}
+    else{img.style.width='100%';img.style.height='auto';}
+  }else if(fit==='height'){
+    if(is90){img.style.width=vpH+'px';img.style.height='auto';}
+    else{img.style.height='100%';img.style.width='auto';}
+  }else{
+    if(is90){img.style.width=nH+'px';img.style.height=nW+'px';}
+    else{img.style.width=nW+'px';img.style.height='auto';}
+  }
+
+  img.style.transform=rot?'rotate('+rot+'deg)':'';
+  img.style.display='block';
+}
+
+// ============ 滚动模式 ============
+// 0°/180°：竖向上下滚动，图片宽度铺满窗口宽，竖向紧密衔接（180° 图片倒置）。
+// 90°/270°：横向左右滚动，图片旋转后显示高度铺满窗口高，横向紧密衔接。
+//           适配竖屏/翻转屏观看。横向是竖向的严格对称：高铺满 vpH，横向连续拼接。
+// 顺/逆时针到相同角度走同一分支，铺满、间距、滚动逻辑完全一致。
+function renderScroll(){
+  vmode='scroll'; updateHL(); saveState();
+  const vp=document.getElementById('vp'); vp.className='scroll'; vp.innerHTML='';
+  const isRot=rot===90||rot===270;          // 旋转 90/270 → 横向滚动
+  const sv=document.createElement('div'); sv.id='scroll-view';
+  sv.style.display='flex'; sv.style.flexShrink='0';
+  const vpW=vp.clientWidth, vpH=vp.clientHeight;
+
+  const order=[];
+  for(let i=0;i<totalPg;i++) order.push(i);   // 始终正序：竖向往下、横向往右为下一张
+
+  const targetDomIdx=order.indexOf(curPg);
+  let scrolled=false;
+
+  if(isRot){
+    // 横向滚动：sv 沿 X 轴排版，高度撑满视口
+    sv.style.flexDirection='row';
+    sv.style.height='100%';
+    sv.style.alignItems='flex-start';        // 不 stretch，wrap 高度精确=vpH
+  }else{
+    // 竖向滚动：sv 沿 Y 轴排版，宽度铺满视口
+    sv.style.flexDirection='column';
+    sv.style.width='100%';
+  }
+
+  function tryScrollToTarget(){
+    if(scrolled) return;
+    if(targetDomIdx<0){scrolled=true;return;}
+    for(let i=0;i<=targetDomIdx;i++){
+      if(sv.children[i].dataset.ready!=='1') return;
+    }
+    scrolled=true;
+    const c=sv.children[targetDomIdx];
+    if(c){
+      if(isRot) c.scrollIntoView({block:'nearest',inline:'start'});
+      else      c.scrollIntoView({block:'start'});
+    }
+  }
+
+  for(const pg of order){
+    const wrap=document.createElement('div');
+    const img=document.createElement('img');
+    img.dataset.pg=pg;
+    img.style.display='block';
+
+    if(isRot){
+      // 几何：旋转 90/270 后视觉宽=nh、视觉高=nw。
+      // 令视觉高=vpH(铺满窗口高) → 缩放 scale=vpH/nw → 视觉宽 dispW=nh*vpH/nw。
+      // 令 img box = vpH(宽) × dispW(高)，旋转后视觉边界 = dispW × vpH，正好填满 wrap。
+      // wrap 宽=dispW、高=vpH，沿 row 排列即横向紧密衔接，无黑边无重叠。
+      wrap.style.cssText='position:relative;width:0;height:'+vpH+'px;overflow:hidden;flex-shrink:0;';
+      img.style.cssText='position:absolute;left:50%;top:50%;'
+        +'transform-origin:center center;'
+        +'transform:translate(-50%,-50%) rotate('+rot+'deg);';
+      img.onload=function(){
+        const nw=this.naturalWidth, nh=this.naturalHeight;
+        if(nw&&nh){
+          const dispW=Math.round(nh/nw*vpH);   // 旋转后显示宽度
+          this.style.width=vpH+'px';            // img box 宽 = 旋转后视觉高
+          this.style.height=dispW+'px';         // img box 高 = 旋转后视觉宽
+          this.parentNode.style.width=dispW+'px';
+        }
+        this.parentNode.dataset.ready='1';
+        tryScrollToTarget();
+      };
+    }else{
+      // 竖向：宽度铺满 vpW、高度自适应，wrap 由 img 自然撑开；180° 倒置显示
+      wrap.className='spage';
+      img.style.width='100%'; img.style.height='auto';
+      img.style.transformOrigin='center center';
+      if(rot===180) img.style.transform='rotate(180deg)';
+      img.onload=function(){
+        this.parentNode.dataset.ready='1';
+        tryScrollToTarget();
+      };
+    }
+    img.onerror=()=>{
+      wrap.innerHTML='<div style="color:#999;padding:20px;text-align:center">加载失败</div>';
+      wrap.dataset.ready='1';
+      tryScrollToTarget();
+    };
+    wrap.appendChild(img);
+    img.src=getImgUrl(pg);
+    sv.appendChild(wrap);
+  }
+  vp.appendChild(sv);
+
+  setTimeout(()=>{
+    if(!scrolled&&targetDomIdx>=0){
+      scrolled=true;
+      const c=sv.children[targetDomIdx];
+      if(c){
+        if(isRot) c.scrollIntoView({block:'nearest',inline:'start'});
+        else      c.scrollIntoView({block:'start'});
+      }
+    }
+  },2000);
+
+  const obs=new IntersectionObserver(entries=>{
+    for(const e of entries)if(e.isIntersecting){
+      const domIdx=[...sv.children].indexOf(e.target);
+      if(domIdx>=0){curPg=order[domIdx]; upPgLabel();saveState();}
+    }
+  },{threshold:0.5});
+  [...sv.children].forEach(c=>obs.observe(c));
+}
+
+// ============ 刷新 ============
+function refreshV(){updateHL();if(vmode==='scroll')renderScroll();else renderPage();}
+
+// ============ 章节 ============
+async function switchChap(idx,page){
+  const ep=eps[idx]; if(!ep)return;
+  if(isLocal){
+    // 本地模式：切换章节前缀
+    photoId=ep.photo_id; epIdx=idx;
+    try{
+      let r, d;
+      if(localDir.startsWith('zip:')){
+        r=await fetch('/api/local/zip-images?album_id='+localDir.slice(4));
+        d=await r.json();
+        if(d.success&&d.data&&d.data.chapters&&d.data.chapters[photoId]){
+          localImages=d.data.chapters[photoId].files||[];
+        }
+      }else{
+        r=await fetch('/api/local/dir-images?name='+encodeURIComponent(localDir)+'&chapter='+photoId);
+        d=await r.json();
+        if(d.success){localImages=d.data.images||[];}
+      }
+      totalPg=localImages.length;
+    }catch(e){toast('切换失败: '+e.message);return;}
+    curPg=page===-1?totalPg-1:page;
+    const sel=document.getElementById('pg-sel'); sel.innerHTML='';
+    for(let i=0;i<totalPg;i++)sel.appendChild(new Option((i+1)+'/'+totalPg,i));
+    if(vmode==='scroll')renderScroll();else renderPage();
+    saveState();
+    toast('已切换到第'+ep.index+'章');
+  }else{
+    // 在线模式：API 获取
+    photoId=ep.photo_id; epIdx=idx;
+    try{
+      const r=await fetch('/api/okuma/'+albumId+'/'+photoId+'/config.json');
+      const d=await r.json(); totalPg=d.numPages||0;
+      curPg=page===-1?totalPg-1:page;
+      const sel=document.getElementById('pg-sel'); sel.innerHTML='';
+      for(let i=0;i<totalPg;i++)sel.appendChild(new Option((i+1)+'/'+totalPg,i));
+      if(vmode==='scroll')renderScroll();else renderPage();
+      saveState();
+      toast('已切换到第'+(ep.index||(idx+1))+'章');
+    }catch(e){toast('切换失败: '+e.message);}
+  }
+}
+
+// HTML 转义：动态文本拼入 innerHTML 前转义，防标题特殊字符破坏结构
+function esc(s){
+  const d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML;
+}
+
+// 轻量 toast 提示：复用 #toast 元素，自动淡入淡出
+let _toastTmr=null;
+function toast(msg){
+  const el=document.getElementById('toast');
+  if(!el)return;
+  el.textContent=msg; el.classList.add('on');
+  clearTimeout(_toastTmr);
+  _toastTmr=setTimeout(()=>el.classList.remove('on'),2500);
+}
+
+function showChaps(){
+  if(!eps.length){toast('暂无章节');return;}
+  const h=eps.map((e,i)=>'<div class="chap-item'+(e.photo_id==photoId?' cur':'')+'" data-i="'+i+'">第'+(e.index||(i+1))+'章 · '+esc(e.title||'JM'+e.photo_id)+'</div>').join('');
+  const ov=document.createElement('div'); ov.className='chap-overlay';
+  ov.innerHTML='<div class="chap-box"><h3>章节列表</h3>'+h+'<button class="chap-close">关闭</button></div>';
+  ov.addEventListener('click',e=>{
+    if(e.target===ov||e.target.className==='chap-close')ov.remove();
+    const it=e.target.closest('.chap-item'); if(it){ov.remove();switchChap(parseInt(it.dataset.i),0);}
+  });
+  document.body.appendChild(ov);
+}
+
+// ============ 章节快切 ============
+function prevChap(){
+  if(epIdx>0){switchChap(epIdx-1,0);toast('上一章');}
+  else{toast('已是第一章');}
+}
+function nextChap(){
+  if(epIdx>=0&&epIdx<eps.length-1){switchChap(epIdx+1,0);toast('下一章');}
+  else{toast('已是最后一章');}
+}
+
+// ============ 随机下一本 ============
+// 随机范围严格对应当前打开入口：
+//   本地漫画入口 → 全部本地漫画列表
+//   在线漫画入口 → 日排行榜（排行榜/搜索进入均算在线阅读）
+//   收藏夹入口   → 当前所属收藏夹
+// 随机时排除当前正在阅读的漫画
+function randPick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+// 判断本地专辑是否为当前正在阅读的漫画
+// zip 模式按 album_id 比对；目录模式按解码后的标题比对
+function isCurrentLocalAlbum(a){
+  if(localDir.startsWith('zip:')){
+    const curAid=localDir.slice(4);
+    return !!(a.album_id&&String(a.album_id)===curAid);
+  }
+  try{return a.album_title===decodeURIComponent(localDir);}catch(e){return false;}
+}
+// 判断在线/收藏夹条目是否为当前正在阅读的漫画（按 album_id 比对）
+function isCurrentOnlineAlbum(it){
+  return !!(it.album_id&&String(it.album_id)===String(albumId));
+}
+
+async function randomNext(){
+  toast('🎲 随机挑选中...');
+  try{
+    let url='';
+    if(isLocal){
+      // 本地漫画：从全部本地漫画列表随机
+      const r=await fetch('/api/local/albums');
+      const d=await r.json();
+      const all=(d.success&&d.data&&d.data.albums)||[];
+      if(!all.length){toast('本地库为空');return;}
+      const pool=all.filter(a=>!isCurrentLocalAlbum(a));
+      if(!pool.length){toast('没有其他本地漫画可随机');return;}
+      const a=randPick(pool);
+      const chaps=(a.chapter_prefixes&&a.chapter_prefixes.length>0)?a.chapter_prefixes.join(','):'001';
+      const chap0=(a.chapter_prefixes&&a.chapter_prefixes[0])||'001';
+      // 优先用唯一编号（zip:album_id）调用；本地无编号漫画用名称（encodeURIComponent 兼容特殊字符）
+      url=(a.zip_only&&a.album_id)
+        ?'/reader?dir=zip:'+a.album_id+'&chapter='+chap0+'&chapters='+chaps
+        :'/reader?dir='+encodeURIComponent(a.album_title)+'&chapter='+chap0+'&chapters='+chaps;
+    }else if(readerSource==='favorites'){
+      // 收藏夹：从当前所属收藏夹随机
+      const fid=favFolderId||'0';
+      const r=await fetch('/api/favorites?page=1&order_by=mr&folder_id='+encodeURIComponent(fid));
+      const d=await r.json();
+      const all=(d.success&&d.data&&d.data.items)||[];
+      if(!all.length){toast('收藏夹为空或未登录');return;}
+      const pool=all.filter(it=>!isCurrentOnlineAlbum(it));
+      if(!pool.length){toast('当前收藏夹没有其他漫画可随机');return;}
+      const album=randPick(pool);
+      url='/reader?title='+album.album_id+'&volume='+album.album_id+'&source=favorites&folder_id='+encodeURIComponent(fid);
+    }else{
+      // 在线漫画（排行榜/搜索入口）：从日排行榜随机
+      const r=await fetch('/api/ranking/daily?page=1&category=0');
+      const d=await r.json();
+      const all=(d.success&&d.data&&d.data.items)||[];
+      if(!all.length){toast('获取日排行榜失败');return;}
+      const pool=all.filter(it=>!isCurrentOnlineAlbum(it));
+      if(!pool.length){toast('日排行榜没有其他漫画可随机');return;}
+      const album=randPick(pool);
+      url='/reader?title='+album.album_id+'&volume='+album.album_id;
+    }
+    // 用 location 跳转：async/await 后 window.open 易被弹出拦截器静默拦截
+    location.href=url;
+  }catch(e){toast('随机失败: '+(e.message||e));}
+}
+</script>
+</body>
+</html>

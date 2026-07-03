@@ -1,0 +1,77 @@
+#configMenu {
+  display: grid;
+  grid-auto-rows: min-content;
+  position: fixed;
+  background: var(--menu-background-color);
+  right: 0;
+  top: 0;
+  bottom: 0;
+  transform: translateX(150%);
+  transition: .4s transform;
+  transition-timing-function: ease-in-out;
+  z-index: 25;
+  padding: 2em;
+  box-shadow: 0 0 5em black;
+}
+
+#configMenu > div {
+  --itemHeight: 2em;
+  height: var(--itemHeight);
+  margin: .5em;
+  display: grid;
+  place-content: center start;
+  place-items: center;
+  grid-auto-flow: column;
+}
+
+#configMenu * {
+  font-size: 120%;
+}
+
+#configMenu.enabled {
+  transform: translateX(0);
+}
+
+#configMenu > div > .icon {
+  width: var(--itemHeight);
+  height: var(--itemHeight);
+  -webkit-mask-image: url("../img/icon/off.webp");
+  -webkit-mask-size: 100%;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  background-color: var(--menu-text-color);
+  margin-right: 1em;
+}
+
+#configMenu > div.enabled > .icon {
+  -webkit-mask-image: url("../img/icon/on.webp");
+}
+
+#closeMenu > .icon {
+  -webkit-mask-image: url("../img/icon/close.webp") !important;
+  -webkit-mask-size: 1em !important;
+}
+
+#configMenu > #pageWidthContainer {
+  grid-auto-flow: row;
+  margin-top: 2em;
+  margin-bottom: 2em;
+  grid-gap: 1em;
+}
+
+#configMenu > #pageWidthContainer > p {
+  margin: 0;
+}
+
+#doublePageButton > .icon {
+  -webkit-mask-image: url("../img/icon/singlePageMode.webp") !important;
+  -webkit-mask-size: 60%;
+}
+
+#doublePageButton.enabled > .icon {
+  -webkit-mask-image: url("../img/icon/doublePageMode.webp") !important;
+}
+
+#configMenu > .button {
+  cursor: pointer;
+}

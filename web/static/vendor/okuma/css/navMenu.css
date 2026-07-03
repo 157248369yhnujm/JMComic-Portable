@@ -1,0 +1,226 @@
+.navMenu {
+  display: grid;
+  place-content: center;
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  transition: .2s transform;
+  pointer-events: none;
+}
+
+.navMenu > .navContainer {
+  background-color: var(--menu-background-color);
+  width: max-content;
+  display: grid;
+  grid-auto-flow: column;
+  place-content: center;
+  place-items: center;
+  box-shadow: 0 0 2em rgba(0, 0, 0, 0.5);
+  pointer-events: all;
+}
+
+.navMenu .icon {
+  width: var(--footer-height);
+  background-color: var(--menu-text-color);
+  -webkit-mask-size: 50%;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+.navMenu .button {
+  cursor: pointer;
+}
+
+.navMenu > .navContainer > div {
+  text-align: center;
+  height: var(--footer-height);
+  padding: 0.5em 1em 0.5em 1em;
+  box-sizing: border-box;
+  display: grid;
+  grid-auto-flow: column;
+  place-items: center;
+  place-content: center;
+}
+
+.navMenu * {
+  font-size: 120%;
+  margin: 0
+}
+
+@media only screen and (max-width: 80vh) {
+
+  .navMenu * {
+    font-size: 5vw;
+  }
+
+  .navMenu {
+    display: block;
+  }
+
+  .navMenu {
+    background-color: var(--menu-background-color);
+  }
+
+  .navMenu > .navContainer {
+    width: 100%;
+    place-content: unset;
+  }
+
+}
+
+/* ---------------------------------- TOP MENU ------------------------------ */
+
+#topMenu {
+  top: 0;
+}
+
+@media only screen and (max-width: 80vh) {
+
+  #topMenu .icon {
+    width: calc(var(--footer-height) * 0.6);
+  }
+
+  #bookInfo > #bookTitle {
+    text-align: left;
+    width: 50vw;
+    font-size: 110%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+}
+
+#topMenu.hidden {
+  transform: translateY(calc(var(--footer-height) * -2));
+  transition-duration: 2s;
+}
+
+#bookInfo {
+  display: grid;
+  grid-auto-flow: row;
+  justify-items: start;
+}
+
+#bookInfo > #bookTitle {
+  font-weight: 900;
+  text-shadow: 1px 0 var(--menu-text-color), 0 1px var(--menu-text-color);
+  margin: 0;
+  margin-bottom: -0.2em;
+}
+
+#bookInfo > #bookVolume {
+  font-weight: normal;
+  font-size: 90%;
+  margin: 0;
+}
+
+#configButton {
+  -webkit-mask-image: url("../img/icon/settings.webp");
+}
+
+#fullScreenButton {
+  -webkit-mask-image: url("../img/icon/enterFS.webp");
+  -webkit-mask-size: 40%;
+}
+
+#fullScreenButton.enabled {
+  -webkit-mask-image: url("../img/icon/exitFS.webp");
+  -webkit-mask-size: 40%;
+}
+
+
+/* -------------------------------- BOTTOM MENU ----------------------------- */
+
+
+#bottomMenu {
+  bottom: 0;
+}
+
+#bottomMenu > .navContainer {
+  grid-template-areas: "leftChapterButton chapterSelection rightChapterButton sliderContainer";
+}
+
+@media only screen and (max-width: 80vh) {
+
+  #bottomMenu > .navContainer {
+    bottom: 0;
+    grid-template-areas: "leftChapterButton sliderContainer rightChapterButton";
+    grid-template-columns: 10vw 1fr 10vw;
+    height: calc(var(--footer-height) * 0.6) !important;
+  }
+
+  body.continuousScrolling #bottomMenu > .navContainer {
+    grid-template-areas: "leftChapterButton chapterSelection rightChapterButton";
+  }
+
+  #bottomMenu > .navContainer > div {
+    height: calc(var(--footer-height) * 0.6) !important;
+  }
+
+  body:not(.continuousScrolling) #chapterSelectionContainer {
+    display: none !important;
+  }
+
+  #sliderContainer {
+    padding: 0 !important;
+    width: 100%;
+    place-content: unset !important;
+    grid-template-columns: auto 1fr auto;
+  }
+
+  #sliderContainer > #pageSlider {
+    width: 100% !important;
+  }
+
+  #leftChapterButton,
+  #rightChapterButton {
+    padding: 0 !important;
+  }
+
+  #leftChapterButton,
+  #rightChapterButton {
+    -webkit-mask-size: 20% !important;
+  }
+
+}
+
+#bottomMenu.hidden {
+  transform: translateY(calc(var(--footer-height) * 2));
+  transition-duration: 2s;
+}
+
+#leftChapterButton {
+  grid-area: leftChapterButton;
+
+}
+
+#rightChapterButton {
+  grid-area: rightChapterButton;
+  transform: rotate(180deg);
+}
+
+#leftChapterButton,
+#rightChapterButton {
+  -webkit-mask-size: 30%;
+  -webkit-mask-image: url("../img/icon/leftChapter.webp");
+}
+
+#chapterSelectionContainer {
+  grid-area: chapterSelection;
+}
+
+#sliderContainer {
+  grid-area: sliderContainer;
+}
+
+#sliderContainer > #pageSliderLeft,
+#sliderContainer > #pageSliderRight {
+  width: 3em;
+  text-align: center;
+}
+
+#sliderContainer > #pageSlider {
+  width: 30vw;
+}

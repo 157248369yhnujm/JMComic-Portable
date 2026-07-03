@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JM漫画下载器</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部导航栏 -->
+        <nav id="navbar">
+            <div class="nav-container">
+                <a href="#home" class="nav-brand">🎨 JM下载器</a>
+                <div class="nav-links">
+                    <a href="#home" class="nav-link" data-page="home">首页</a>
+                    <a href="#search" class="nav-link" data-page="search">搜索</a>
+                    <a href="#ranking" class="nav-link" data-page="ranking">排行榜</a>
+                    <a href="#favorites" class="nav-link" data-page="favorites">收藏夹</a>
+                    <a href="#local" class="nav-link" data-page="local">本地漫画</a>
+                    <a href="#downloads" class="nav-link" data-page="downloads">
+                        下载管理
+                        <span id="download-badge" class="badge hidden">0</span>
+                    </a>
+                    <a href="#settings" class="nav-link" data-page="settings">设置</a>
+                    <span class="nav-separator">|</span>
+                    <a href="#favorites" class="nav-link nav-login" id="nav-login-btn" data-page="favorites">🔑 登录</a>
+                    <span class="nav-user hidden" id="nav-user-info"></span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 主内容区域 -->
+        <main id="main-content">
+            <div class="page-loading">
+                <div class="spinner"></div>
+                <p>加载中...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- 左右固定翻页按钮 -->
+    <button class="page-nav-btn" id="page-nav-prev" onclick="pageNavPrev()" title="上一页">◀<span class="page-hint"></span></button>
+    <button class="page-nav-btn" id="page-nav-next" onclick="pageNavNext()" title="下一页">▶<span class="page-hint"></span></button>
+
+    <!-- 页面选择器弹窗 -->
+    <div class="modal-overlay" id="page-select-modal">
+        <div class="modal-box">
+            <h3>📄 选择要下载的页面</h3>
+            <div style="margin-bottom:12px;display:flex;gap:8px">
+                <button class="btn btn-sm btn-outline" onclick="pageModalCheckAll()">全选</button>
+                <button class="btn btn-sm btn-outline" onclick="pageModalClearAll()">清空</button>
+            </div>
+            <div class="modal-pages" id="page-select-grid"></div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="pageModalConfirm()">📥 加入选择</button>
+                <button class="btn btn-outline" onclick="closePageModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 浮动批量操作栏 -->
+    <div id="batch-bar">
+        <span class="batch-count" id="batch-count">已选 0 个</span>
+        <button class="btn btn-sm btn-outline" onclick="selectAllCurrent()">全选本页</button>
+        <button class="btn btn-sm btn-outline" onclick="openPageModal()">选择页面</button>
+        <button class="btn btn-sm btn-outline" onclick="selectAll()">全选所有页</button>
+        <button class="btn btn-sm btn-primary" onclick="batchDownload()">📥 批量下载</button>
+        <button class="btn btn-sm btn-outline" onclick="clearSelection()">取消选择</button>
+    </div>
+
+    <!-- Toast 通知容器 -->
+    <div id="toast-container"></div>
+
+    <!-- JS 脚本 -->
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/pages/dashboard.js"></script>
+    <script src="/static/js/pages/search.js"></script>
+    <script src="/static/js/pages/album.js"></script>
+    <script src="/static/js/pages/downloads.js"></script>
+    <script src="/static/js/pages/ranking.js"></script>
+    <script src="/static/js/pages/favorites.js"></script>
+    <script src="/static/js/pages/settings.js"></script>
+    <script src="/static/js/pages/local.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
